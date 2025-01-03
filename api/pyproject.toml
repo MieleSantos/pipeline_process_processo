@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "api"
+version = "0.1.0"
+description = ""
+authors = ["mielesantos <mielesnts@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
+pandas = "^2.2.3"
+rabbitmq = "^0.2.0"
+celery = "^5.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
