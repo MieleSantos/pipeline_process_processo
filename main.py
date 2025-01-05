@@ -18,12 +18,15 @@ if len(uploaded_files) >= 1 and len(uploaded_files) <= 5:
         st.success(f"{len(uploaded_files)} arquivos enviados com sucesso!")
 
         for file in uploaded_files:
-            task = task_process_files.delay(file.read())
-            st.write(f"Tarefa criada: {task.id}")
-            task_id = status_task(task.id)
+            try:
+                task = task_process_files.delay(file.read())
+                st.write(f"Tarefa criada: {task.id}")
+                task_id = status_task(task.id)
 
-            st.write("Aguarde enquanto processamos seus documentos...")
-            csv_files.append(verify_task(task.id))
+                st.write("Aguarde enquanto processamos seus documentos...")
+                csv_files.append(verify_task(task.id))
+            except Exception as e:
+                st.error(f"Erro ao processar arquivo: {e}")
 
         st.success("Tarefa concluída!")
 

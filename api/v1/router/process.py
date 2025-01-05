@@ -20,9 +20,7 @@ def get_task_status(task_id: str):
     return {"status": result.state}
 
 
-@router.post(
-    "/file", status_code=status.HTTP_201_CREATED, description="Process PDF file"
-)
+@router.post("/file", description="Process PDF file")
 async def process_pdf(file_pdf: UploadFile = File(...)):
     if not file_pdf:
         raise HTTPException(
@@ -31,7 +29,6 @@ async def process_pdf(file_pdf: UploadFile = File(...)):
         )
 
     try:
-        print(file_pdf)
         resp = process_pdf_entity(file_pdf.file)
 
     except Exception as e:
