@@ -23,7 +23,7 @@ if len(uploaded_files) >= 1 and len(uploaded_files) <= 5:
             task_id = status_task(task.id)
 
             st.write("Aguarde enquanto processamos seus documentos...")
-            csv_files.append(verify_task(task.id, file.name))
+            csv_files.append(verify_task(task.id))
 
         st.success("Tarefa concluída!")
 
