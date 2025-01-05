@@ -1,11 +1,62 @@
 
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+
+  queue:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
     ports:
-      - "5672:5672"  # Porta para AMQP
-      - "15672:15672"  # Porta para o painel de gerenciamento
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin123
+      - "5672:5672" 
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+    networks:
+      - apiNetwork
+  
+  front:
+    build: ./
+    command: streamlit run front/main.py --server.port 8501
+    volumes:
+        - ./:/usr/src/app
+    depends_on:
+      queue:
+        condition: service_healthy
+    ports:
+        - 8501:8501
+    networks:
+      - apiNetwork
+
+  api:
+      build: .
+      command: fastapi run api/main.py
+      environment:
+        - CELERY_BROKER_URL=queue
+      depends_on:
+        queue:
+          condition: service_healthy
+      ports:
+        - "8000:8000"
+      networks:
+      - apiNetwork
+
+  worker_process_data_api:
+      depends_on:
+        queue:
+          condition: service_healthy
+      restart: unless-stopped
+      build: .
+ 
+      environment:
+        - CELERY_BROKER_URL=queue
+      command: >
+          celery -A backend worker 
+          -Q process_data_api 
+          -l INFO 
+      networks:
+        - apiNetwork
+networks:
+  apiNetwork:
+    driver: bridge
