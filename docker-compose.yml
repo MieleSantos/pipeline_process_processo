@@ -1,62 +1,76 @@
+version: "3.9"
 
 services:
-
-  queue:
+  rabbitmq:
     image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672" 
-      - 15672:15672
+      - "5672:5672" # Porta AMQP
+      - "15672:15672" # Painel de gerenciamento
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
       timeout: 30s
       retries: 3
-
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     networks:
       - apiNetwork
-  
-  front:
-    build: ./
-    command: streamlit run front/main.py --server.port 8501
-    volumes:
-        - ./:/usr/src/app
-    depends_on:
-      queue:
-        condition: service_healthy
+    
+  redis:
+    image: redis:alpine
     ports:
-        - 8501:8501
+      - "6379:6379"
+    networks:
+      - apiNetwork
+
+  worker_task_process_files:
+    depends_on:
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    build:
+      context: .
+    command: celery -A tasks worker --loglevel=info
+    networks:
+      - apiNetwork
+
+  front:
+    build:
+      context: .
+    command: streamlit run main.py --server.port 8501
+    volumes:
+      - ./:/usr/src/app
+    environment:
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
     networks:
       - apiNetwork
 
   api:
-      build: .
-      command: fastapi run api/main.py
-      environment:
-        - CELERY_BROKER_URL=queue
-      depends_on:
-        queue:
-          condition: service_healthy
-      ports:
-        - "8000:8000"
-      networks:
+    build:
+      context: .
+    command: fastapi run api/main.py --host 0.0.0.0 --port 8000 --reload
+    environment:
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
       - apiNetwork
 
-  worker_process_data_api:
-      depends_on:
-        queue:
-          condition: service_healthy
-      restart: unless-stopped
-      build: .
- 
-      environment:
-        - CELERY_BROKER_URL=queue
-      command: >
-          celery -A backend worker 
-          -Q process_data_api 
-          -l INFO 
-      networks:
-        - apiNetwork
 networks:
   apiNetwork:
     driver: bridge
