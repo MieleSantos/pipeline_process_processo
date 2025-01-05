@@ -1,6 +1,5 @@
 from celery.result import AsyncResult
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
-
 from v1.router.process_pdf import process_pdf_entity
 
 router = APIRouter()
