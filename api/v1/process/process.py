@@ -1,22 +1,24 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status
-from api.queue.tasks import process_pdf
+
+from queue.tasks import process_pdf
 from celery.result import AsyncResult
-from api.queue.config import celery
+from queue.config import celery
 
 router = APIRouter()
 
 
 @router.post("/file")
-async def task_pdf(file_pdf: UploadFile = File(media_type="application/pdf")):
-    if file_pdf.content_type != "application/pdf":
+async def task_pdf(file_pdf: UploadFile = File(...)):
+    print(file_pdf)
+    if not file_pdf:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="O arquivo enviado não é um PDF.",
+            detail="O arquivo invalido.",
         )
 
     try:
         file_content = await file_pdf.read()
-
+        # print(file_content)
         # with open(f"{file_pdf.filename}", "wb") as f:
         #     f.write(file_content)
 

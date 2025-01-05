@@ -1,4 +1,4 @@
-from api.queue.config import celery
+from queue.config import celery
 
 
 @celery.task
