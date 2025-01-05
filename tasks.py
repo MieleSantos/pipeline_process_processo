@@ -1,11 +1,19 @@
+import os
 import time
-
 
 import requests
 import streamlit as st
+from dotenv import load_dotenv
 
 from config_celery import app
-from utils import create_file, url_base
+from utils import create_file
+
+load_dotenv()
+
+url_base = os.getenv("URL_BASE")
+
+if not url_base:
+    raise ValueError("URL_BASE not found in .env file")
 
 
 @app.task
