@@ -5,26 +5,26 @@ from v1.router.process_pdf import process_pdf_entity
 router = APIRouter()
 
 
-@router.get("/tasks/status/{task_id}", description="Get task status")
+@router.get('/tasks/status/{task_id}', description='Get task status')
 def get_task_status(task_id: str):
     result = AsyncResult(task_id)
 
-    if result.state == "SUCCESS":
-        return {"status": "SUCCESS", "csv_link": result.info}
-    elif result.state == "FAILURE":
+    if result.state == 'SUCCESS':
+        return {'status': 'SUCCESS', 'csv_link': result.info}
+    elif result.state == 'FAILURE':
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Task failure.",
+            detail='Task failure.',
         )
-    return {"status": result.state}
+    return {'status': result.state}
 
 
-@router.post("/file", description="Process PDF file")
+@router.post('/file', description='Process PDF file')
 async def process_pdf(file_pdf: UploadFile = File(...)):
     if not file_pdf:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="invalid file",
+            detail='invalid file',
         )
 
     try:

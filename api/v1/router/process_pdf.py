@@ -2,7 +2,6 @@ import re
 
 import pdfplumber
 
-
 #  nome do autor do processo
 #  documento do autor do processo
 #  nome(s) do(s) réu(s) do processo
@@ -10,17 +9,17 @@ import pdfplumber
 
 # parametros que serão buscados no arquivo pdf
 data_params = {
-    "Classe": "classe",
-    "Assunto": "assunto",
-    "Foro": "foro",
-    "Vara": "vara",
-    "Juiz": "juiz",
-    "Área": "area",
-    "Nome": "nome",
-    "Autor": "autor",
-    "Réu": "reu",
+    'Classe': 'classe',
+    'Assunto': 'assunto',
+    'Foro': 'foro',
+    'Vara': 'vara',
+    'Juiz': 'juiz',
+    'Área': 'area',
+    'Nome': 'nome',
+    'Autor': 'autor',
+    'Réu': 'reu',
     # "Nome Observação Advogados": "Nome Observação Advogados",
-    "Valor da ação": "valor_da_acao",
+    'Valor da ação': 'valor_da_acao',
 }
 
 
@@ -37,7 +36,7 @@ def process_pdf_entity(file):
         list_data = []
 
         for page in pdf.pages:
-            list_data.extend(page.extract_text().split("\n"))
+            list_data.extend(page.extract_text().split('\n'))
 
     return extract_entity(list_data)
 
@@ -52,27 +51,27 @@ def extract_entity(list_data):
         dict: Infomações encontradas
     """
     data_dict = {}
-    cnj = r"\b\d{7}-\d{2}\.\d{4}\.\d{1,2}\.\d{2}\.\d{4}\b"
+    cnj = r'\b\d{7}-\d{2}\.\d{4}\.\d{1,2}\.\d{2}\.\d{4}\b'
 
     cnj_captured = False
     for txt in list_data:
         if re.search(cnj, txt) and not cnj_captured:
-            data_dict["cnj"] = re.findall(cnj, txt)[0]
+            data_dict['cnj'] = re.findall(cnj, txt)[0]
             cnj_captured = True
 
-        if "Imptte" in txt:
-            data_dict["autor"] = txt.split("Imptte")[1].strip()
-        if "Imptdo" in txt:
-            data_dict["reu"] = txt.split("Imptdo")[1].strip()
+        if 'Imptte' in txt:
+            data_dict['autor'] = txt.split('Imptte')[1].strip()
+        if 'Imptdo' in txt:
+            data_dict['reu'] = txt.split('Imptdo')[1].strip()
 
-        if "Reqte" in txt and "Imptte" not in txt:
-            data_dict["autor"] = txt.split("Reqte")[1].strip()
-        if "Reqdo" in txt and "Imptdo" not in txt:
-            reu = txt.split("Reqdo")[1].strip()
-            if data_dict.get("reu"):
-                data_dict["reu"] = data_dict["reu"] + "," + reu
+        if 'Reqte' in txt and 'Imptte' not in txt:
+            data_dict['autor'] = txt.split('Reqte')[1].strip()
+        if 'Reqdo' in txt and 'Imptdo' not in txt:
+            reu = txt.split('Reqdo')[1].strip()
+            if data_dict.get('reu'):
+                data_dict['reu'] = data_dict['reu'] + ',' + reu
             else:
-                data_dict["reu"] = reu
+                data_dict['reu'] = reu
         # if "OAB" in txt:
         #     try:
         #         data_dict["autor"] = list_data[list_data.index(txt) + 1]
