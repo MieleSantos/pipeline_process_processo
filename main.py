@@ -1,5 +1,5 @@
 import streamlit as st
-from tasks import task_process_files, status_task, verify_task
+from tasks import task_process_files, data_task_status, verify_task
 from utils import concat_csv_files
 
 st.title("Pipeline de Processos Jurídicos")
@@ -13,6 +13,7 @@ uploaded_files = st.file_uploader(
 
 
 if len(uploaded_files) >= 1 and len(uploaded_files) <= 5:
+    is_ok = True  # controla a exibição do botão de download
     if st.button("Enviar para processamento"):
         csv_files = []
         st.success(f"{len(uploaded_files)} arquivos enviados com sucesso!")
@@ -21,18 +22,21 @@ if len(uploaded_files) >= 1 and len(uploaded_files) <= 5:
             try:
                 task = task_process_files.delay(file.read())
                 st.write(f"Tarefa criada: {task.id}")
-                task_id = status_task(task.id)
+                task_id = data_task_status(task.id)
 
                 st.write("Aguarde enquanto processamos seus documentos...")
+
                 csv_files.append(verify_task(task.id))
             except Exception as e:
                 st.error(f"Erro ao processar arquivo: {e}")
+                is_ok = False
+                break
 
-        st.success("Tarefa concluída!")
-
-        csv_data = concat_csv_files(csv_files)
-        st.download_button(
-            "Baixar CSV",
-            data=csv_data,
-            file_name="data_processo.csv",
-        )
+        if is_ok:
+            st.success("Tarefa concluída!")
+            csv_data = concat_csv_files(csv_files)
+            st.download_button(
+                "Baixar CSV",
+                data=csv_data,
+                file_name="data_processo.csv",
+            )
