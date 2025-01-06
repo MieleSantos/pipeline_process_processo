@@ -28,7 +28,7 @@ Caso precise, insira observações no corpo do e-mail quando enviar o link.
 
 1. **Upload de PDF**: O usuário pode fazer upload de arquivos PDF diretamente pelo frontend de 1 a 5 pdf.
 2. **Fila de Processamento**: Os arquivos enviados são colocados em uma fila que vai acionar uma api para fazer o processamento do pdf, extraindo as informações.
-3. **Extração de Informações**: O sistema utiliza uma API para extrair informações relevantes dos PDFs.
+3. **Extração de Informações**: O sistema utiliza uma API para extrair informações relevantes dos PDFs, para retorna um arquivo csv para o usuario.
 4. **Gerenciamento de Tarefas**: Utiliza `Rabbitmq` e `Celery` para orquestrar o processamento e o `Redis` como backend de resultado.
 
 ## Tecnologias Utilizadas
@@ -44,15 +44,24 @@ Caso precise, insira observações no corpo do e-mail quando enviar o link.
 
 ### 1. Requisitos
 
-- Docker e Docker Compose instalados na máquina.
-- Python 3.12+ (caso queira rodar localmente sem Docker).
+- `Docker` e `Docker Compose` instalados na máquina.
+- Python 3.12 (caso queira rodar localmente sem Docker).
 
 ### 2. Clonando o Repositório
 
 ```bash
 https://github.com/MieleSantos/pipeline_process_processo.git
 ```
+### 3. Crie um arquivo .env na raiz do diretório, com as seguintes variaveis
 
+```bash
+URL_BASE=http://api:8000/process/
+CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+CELERY_RESULT_BACKEND=redis://redis:6379/0
+RABBITMQ_DEFAULT_USER=guest
+RABBITMQ_DEFAULT_PASS=guest
+```
+**Nota** Estou usando as credencias padrões do rabbitmq, para produção altera essa configuração
 ### 4. Executando com Docker Compose
 
 ```bash
