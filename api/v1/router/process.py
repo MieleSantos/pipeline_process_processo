@@ -10,7 +10,6 @@ def get_task_status(task_id: str):
     result = AsyncResult(task_id)
 
     if result.state == "SUCCESS":
-        print(result.info)
         return {"status": "SUCCESS", "csv_link": result.info}
     elif result.state == "FAILURE":
         raise HTTPException(
